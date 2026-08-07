@@ -1,0 +1,1 @@
+export { emailAgent } from './agent';

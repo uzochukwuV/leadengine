@@ -1,0 +1,26 @@
+{
+  "name": "shopify-cold-email-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/scripts/caspian-listener.ts",
+    "listen": "tsx src/scripts/caspian-listener.ts",
+    "server": "tsx src/server.ts",
+    "migrate": "tsx src/scripts/migrate-multi-tenant.ts"
+  },
+  "dependencies": {
+    "openai": "^4.x",
+    "caspian-sdk": "^1.x",
+    "better-sqlite3": "^9.x",
+    "express": "^4.x",
+    "cors": "^2.x",
+    "dotenv": "^16.x"
+  },
+  "devDependencies": {
+    "tsx": "^4.x",
+    "@types/express": "^4.x",
+    "@types/cors": "^2.x",
+    "@types/better-sqlite3": "^7.x",
+    "typescript": "^5.x"
+  }
+}
