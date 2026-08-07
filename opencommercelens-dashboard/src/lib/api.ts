@@ -289,6 +289,17 @@ class ApiService {
     return this.request(`/api/tools/campaigns/${id}`, { method: 'DELETE' });
   }
 
+  async getSettings(): Promise<{ success: boolean; settings: any }> {
+    return this.request('/api/tools/settings');
+  }
+
+  async updateSettings(settings: any): Promise<{ success: boolean; settings: any }> {
+    return this.request('/api/tools/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  }
+
   isAuthenticated(): boolean {
     return !!this.getToken();
   }

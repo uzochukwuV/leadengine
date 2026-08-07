@@ -408,4 +408,79 @@ router.delete('/campaigns/:id', (req, res) => {
   res.json({ success: true, message: 'Campaign deleted' });
 });
 
+// ============================================
+// GET /api/settings
+// ============================================
+router.get('/settings', (req: any, res: any) => {
+  const tenantId = getTenantId(req);
+  if (!tenantId) return res.status(401).json({ error: 'Unauthorized' });
+  
+  const tenant = db.prepare('SELECT settings FROM tenants WHERE id = ?').get(tenantId) as any;
+  if (!tenant) return res.status(404).json({ error: 'Tenant not found' });
+  
+  const settings = JSON.parse(tenant.settings || '{}');
+  
+  res.json({
+    success: true,
+    settings: {
+      admin_email: settings.admin_email || null,
+      from_email: settings.from_email || null,
+      from_name: settings.from_name || null,
+      company_name: settings.company_name || null,
+      company_address: settings.company_address || null,
+      telegram_bot_token: settings.telegram_bot_token || null,
+      twitter_handle: settings.twitter_handle || null,
+      linkedin_url: settings.linkedin_url || null,
+      timezone: settings.timezone || 'UTC'
+    }
+  });
+});
+
+// ============================================
+// PUT /api/settings
+// ============================================
+router.put('/settings', (req: any, res: any) => {
+  const tenantId = getTenantId(req);
+  if (!tenantId) return res.status(401).json({ error: 'Unauthorized' });
+  
+  const {
+    admin_email,
+    from_email,
+    from_name,
+    company_name,
+    company_address,
+    telegram_bot_token,
+    twitter_handle,
+    linkedin_url,
+    timezone
+  } = req.body;
+  
+  const tenant = db.prepare('SELECT settings FROM tenants WHERE id = ?').get(tenantId) as any;
+  if (!tenant) return res.status(404).json({ error: 'Tenant not found' });
+  
+  const currentSettings = JSON.parse(tenant.settings || '{}');
+  
+  const newSettings = {
+    ...currentSettings,
+    ...(admin_email !== undefined && { admin_email }),
+    ...(from_email !== undefined && { from_email }),
+    ...(from_name !== undefined && { from_name }),
+    ...(company_name !== undefined && { company_name }),
+    ...(company_address !== undefined && { company_address }),
+    ...(telegram_bot_token !== undefined && { telegram_bot_token }),
+    ...(twitter_handle !== undefined && { twitter_handle }),
+    ...(linkedin_url !== undefined && { linkedin_url }),
+    ...(timezone !== undefined && { timezone })
+  };
+  
+  db.prepare('UPDATE tenants SET settings = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+    .run(JSON.stringify(newSettings), tenantId);
+  
+  res.json({
+    success: true,
+    message: 'Settings updated',
+    settings: newSettings
+  });
+});
+
 export default router;
