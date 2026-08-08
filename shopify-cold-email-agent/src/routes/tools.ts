@@ -318,6 +318,27 @@ router.post('/query', (req, res) => {
 });
 
 // ============================================
+// GET /api/tools/agent
+// ============================================
+router.get('/agent', (req: any, res) => {
+  const tenantId = req.tenantId;
+  if (!tenantId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const agentEmail = process.env.CASPIAN_EMAIL_USERNAME
+    ? `${process.env.CASPIAN_EMAIL_USERNAME}@agents.trycaspianai.com`
+    : null;
+
+  res.json({
+    success: true,
+    agent: {
+      email: agentEmail,
+      telegram_bot: process.env.TELEGRAM_BOT_TOKEN ? true : false,
+      status: 'online'
+    }
+  });
+});
+
+// ============================================
 // GET /api/tools/analytics
 // ============================================
 router.get('/analytics', (req, res) => {

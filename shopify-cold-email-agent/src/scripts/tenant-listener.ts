@@ -2,13 +2,23 @@
  * OpenCommerceLens - Multi-Tenant AI Agent Listener
  * Handles incoming messages via Caspian and responds per-tenant
  */
-import { CommClient, Message } from 'caspian-sdk';
+import { CommClient } from 'caspian-sdk';
 import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const client = new CommClient({ apiKey: process.env.CASPIAN_API_KEY });
+
+// Initialize Caspian client
+const client = new CommClient({
+  apiKey: process.env.CASPIAN_API_KEY,
+  baseUrl: process.env.CASPIAN_BASE_URL
+});
+
+// Get agent email address
+let agentEmail = process.env.CASPIAN_EMAIL_USERNAME 
+  ? `${process.env.CASPIAN_EMAIL_USERNAME}@agents.trycaspianai.com`
+  : 'agent@agents.trycaspianai.com';
 
 // ============================================
 // DATABASE (Multi-Tenant Schema)
@@ -163,25 +173,62 @@ async function handleMessage(message: Message) {
 }
 
 // ============================================
+// MESSAGE HANDLER (for Caspian emails)
+// ============================================
+async function handleCaspianMessage(message: any) {
+  console.log('[CASPIAN MESSAGE]', {
+    from: message.sender?.address,
+    subject: message.subject,
+    text: message.text?.substring(0, 100)
+  });
+
+  try {
+    // Generate AI response
+    const response = await generateAIResponse('default', message.text || '', {
+      from: message.sender?.address
+    });
+
+    // Reply via Caspian
+    await message.reply(response);
+
+    console.log('[REPLY SENT]', response.substring(0, 50));
+
+  } catch (error) {
+    console.error('[ERROR]', error);
+    await message.reply('I apologize, I encountered an error processing your message.');
+  }
+}
+
+// ============================================
 // MAIN: Start Listening
 // ============================================
 async function main() {
-  console.log('[START] Multi-Tenant AI Agent Listener');
-  console.log('[CONFIG] Using multi-tenant database schema');
+  console.log('[START] OpenCommerceLens AI Agent');
+  console.log('[CASPIAN] API Key:', process.env.CASPIAN_API_KEY?.substring(0, 20) + '...');
 
-  // Process any pending messages
-  client.on('message', handleMessage);
+  // Connect to email channel
+  try {
+    const inbox = await client.connectEmail({ username: process.env.CASPIAN_EMAIL_USERNAME });
+    agentEmail = inbox.address;
+    console.log('[EMAIL] Agent address:', agentEmail);
+  } catch (err) {
+    console.log('[EMAIL] Using default address');
+  }
 
-  // Also set up webhook handler for direct API calls
-  // The listener can be called via HTTP webhook as well
+  // Set up message handler
+  client.onMessage(handleCaspianMessage);
 
   console.log('[READY] Listening for messages...');
+  console.log('[EMAIL] Send emails to:', agentEmail);
 
   // Keep process alive
   process.on('SIGTERM', () => {
     console.log('[SHUTDOWN] Stopping listener...');
     process.exit(0);
   });
+
+  // Start listening
+  await client.listen();
 }
 
 main().catch(console.error);

@@ -62,6 +62,12 @@ interface Stats {
   unsubscribed: number;
 }
 
+interface Agent {
+  email: string | null;
+  telegram_bot: boolean;
+  status: string;
+}
+
 interface Lead {
   id: number;
   email: string;
@@ -215,6 +221,10 @@ class ApiService {
   // Data
   async getStats(): Promise<{ stats: Stats }> {
     return this.request('/api/stats');
+  }
+
+  async getAgent(): Promise<{ success: boolean; agent: Agent }> {
+    return this.request('/api/tools/agent');
   }
 
   async getLeads(): Promise<{ leads: Lead[] }> {
