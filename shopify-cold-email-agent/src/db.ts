@@ -1,6 +1,6 @@
 /**
  * Database wrapper using JSON file storage
- * Works on Vercel serverless functions
+ * Works on Vercel serverless functions (read-only mode)
  */
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -9,7 +9,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 
-const DB_PATH = path.join(process.cwd(), 'db.json');
+// On Vercel, use the bundled db.json (read-only)
+// Locally, we can write to the file
+const isVercel = process.env.VERCEL === 'true';
+const DB_PATH = isVercel 
+  ? path.join(process.cwd(), 'db.json')
+  : path.join(process.cwd(), 'db.json');
 
 interface DbData {
   users: any[];
@@ -53,10 +58,12 @@ function loadDb(): void {
 }
 
 function saveDb(): void {
+  // Only save locally, not on Vercel (read-only filesystem)
+  if (isVercel) return;
   try {
     fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
   } catch (e) {
-    // Ignore save errors in serverless
+    // Ignore save errors
   }
 }
 
