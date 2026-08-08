@@ -4,5 +4,6 @@
       "src": "vercel.js",
       "use": "@vercel/node"
     }
-  ]
+  ],
+  "buildCommand": "npm run build"
 }
