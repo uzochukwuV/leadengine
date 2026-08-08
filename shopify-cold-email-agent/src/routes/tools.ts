@@ -2,11 +2,10 @@
  * Tools Routes - Lead discovery, email sending, etc.
  */
 import { Router } from 'express';
-import Database from 'better-sqlite3';
-import * as path from 'path';
+import { getDatabase } from '../db';
 
 const router = Router();
-const db = new (Database as any)(path.join(process.cwd(), 'opencommercelens.db'));
+const db = getDatabase();
 
 // ============================================
 // HELPERS

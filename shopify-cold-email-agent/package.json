@@ -9,7 +9,6 @@
     "migrate": "tsx src/scripts/migrate-multi-tenant.ts"
   },
   "dependencies": {
-    "better-sqlite3": "^9.x",
     "caspian-sdk": "^0.6.x",
     "cors": "^2.x",
     "dotenv": "^16.x",

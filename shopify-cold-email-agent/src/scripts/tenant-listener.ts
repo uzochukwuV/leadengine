@@ -23,9 +23,9 @@ let agentEmail = process.env.CASPIAN_EMAIL_USERNAME
 // ============================================
 // DATABASE (Multi-Tenant Schema)
 // ============================================
-import Database from 'better-sqlite3';
-import * as path from 'path';
-const db = new (Database as any)(path.join(process.cwd(), 'opencommercelens.db'));
+import { getDatabase, awaitDatabase } from '../db';
+
+const db = getDatabase();
 
 // ============================================
 // HELPER: Get Tenant Settings

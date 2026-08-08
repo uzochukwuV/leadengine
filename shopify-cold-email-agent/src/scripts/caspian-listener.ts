@@ -1,7 +1,7 @@
 /**
  * OpenCommerceLens - AI Agent with Real Web Search
  */
-import { CommClient, Message } from 'caspian-sdk';
+import { CommClient } from 'caspian-sdk';
 import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -13,9 +13,9 @@ const client = new CommClient({ apiKey: process.env.CASPIAN_API_KEY });
 // ============================================
 // DATABASE
 // ============================================
-import Database from 'better-sqlite3';
-import * as path from 'path';
-const db = new (Database as any)(path.join(process.cwd(), 'opencommercelens.db'));
+import { getDatabase, awaitDatabase } from '../db';
+
+const db = getDatabase();
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS stores (
@@ -292,7 +292,7 @@ await client.connectEmail({ username: 'opencommercelens' }).catch(() => {});
 const tg = process.env.TELEGRAM_BOT_TOKEN;
 if (tg) await client.connectTelegram({ botToken: tg }).catch(() => {});
 
-client.onMessage(async (message: Message) => {
+client.onMessage(async (message: any) => {
   const sender = message.sender as any;
   console.log('\n📨', sender?.email || 'unknown');
   try {

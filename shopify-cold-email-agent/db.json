@@ -1,0 +1,47 @@
+{
+  "users": [
+    {
+      "id": "user_test1",
+      "tenant_id": "tenant_test123",
+      "email": "test@example.com",
+      "password_hash": "f58e98345add9cabd383aebc732789b8b41c2a820c4d977b667f6fe7692b2451",
+      "name": "Test User",
+      "role": "owner",
+      "created_at": "2026-08-08T12:26:08.156Z"
+    }
+  ],
+  "stores": [],
+  "leads": [],
+  "contacts": [],
+  "campaigns": [],
+  "emails": [],
+  "activity_log": [],
+  "settings": [
+    {
+      "tenant_id": "tenant_test123",
+      "from_email": "outreach@example.com",
+      "from_name": "OpenCommerceLens",
+      "company_name": "Your Company",
+      "timezone": "UTC",
+      "updated_at": "2026-08-08T12:26:08.156Z"
+    }
+  ],
+  "tenants": [
+    {
+      "id": "tenant_test123",
+      "name": "Test Workspace",
+      "email": "test@example.com",
+      "plan": "starter",
+      "status": "active",
+      "created_at": "2026-08-08T12:26:08.155Z"
+    }
+  ],
+  "counters": {
+    "users": 1,
+    "tenants": 1,
+    "stores": 0,
+    "leads": 0,
+    "campaigns": 0,
+    "emails": 0
+  }
+}

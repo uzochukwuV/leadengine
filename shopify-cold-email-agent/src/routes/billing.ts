@@ -2,11 +2,10 @@
  * Billing Routes - Stripe Integration
  */
 import { Router } from 'express';
-import Database from 'better-sqlite3';
-import * as path from 'path';
+import { getDatabase } from '../db';
 
 const router = Router();
-const db = new (Database as any)(path.join(process.cwd(), 'opencommercelens.db'));
+const db = getDatabase();
 
 const PLANS: Record<string, { name: string; price: number; limits: { leads: number; campaigns: number; emails_per_month: number } }> = {
   free: { name: 'Free', price: 0, limits: { leads: 10, campaigns: 1, emails_per_month: 50 } },

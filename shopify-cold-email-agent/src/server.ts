@@ -10,9 +10,13 @@ import authRoutes from './routes/auth';
 import billingRoutes from './routes/billing';
 import toolsRoutes from './routes/tools';
 import { verifyToken } from './routes/auth';
+import { awaitDatabase, getDatabase } from './db';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize database
+awaitDatabase().then(() => console.log('[DB] Initialized'));
 
 // Middleware
 app.use(cors());
@@ -42,10 +46,8 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Data routes (tenant-scoped)
-import Database from 'better-sqlite3';
-import * as path from 'path';
-const db = new (Database as any)(path.join(process.cwd(), 'opencommercelens.db'));
+// Get db reference
+const db = getDatabase();
 
 app.get('/api/leads', (req: any, res) => {
   if (!req.tenantId) return res.status(401).json({ error: 'Unauthorized' });

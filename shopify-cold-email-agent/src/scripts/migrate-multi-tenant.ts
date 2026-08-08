@@ -10,12 +10,11 @@
  * 4. Add concurrency-safe message queues
  */
 
-import Database from 'better-sqlite3';
-import * as path from 'path';
+import { awaitDatabase } from '../db';
 
-const db = new (Database as any)(path.join(process.cwd(), 'opencommercelens.db'));
-
-console.log('Starting Multi-Tenant Migration...\n');
+async function runMigration() {
+  const db = await awaitDatabase();
+  console.log('Starting Multi-Tenant Migration...\n');
 
 // STEP 1: Create tenants table
 console.log('Creating tenants table...');
@@ -137,3 +136,6 @@ try { db.exec('DROP TABLE IF EXISTS campaign_leads'); } catch (e) {}
 
 console.log('\nMulti-Tenant Migration Complete!');
 console.log('Tenant ID:', tenantId);
+}
+
+runMigration().catch(console.error);

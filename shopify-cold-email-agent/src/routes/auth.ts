@@ -2,12 +2,11 @@
  * Auth Routes - JWT-based authentication
  */
 import { Router } from 'express';
-import Database from 'better-sqlite3';
-import * as path from 'path';
 import * as crypto from 'crypto';
+import { getDatabase } from '../db';
 
 const router = Router();
-const db = new (Database as any)(path.join(process.cwd(), 'opencommercelens.db'));
+const db = getDatabase();
 
 function createToken(userId: string, tenantId: string): string {
   const payload = { userId, tenantId, exp: Date.now() + 7 * 24 * 60 * 60 * 1000 };
@@ -49,8 +48,9 @@ router.post('/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email) as any;
-  if (!user || user.password_hash !== hashPassword(password)) return res.status(401).json({ error: 'Invalid credentials' });
-  db.prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(user.id);
+  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  if (user.password_hash !== hashPassword(password)) return res.status(401).json({ error: 'Invalid credentials' });
+  db.prepare('UPDATE users SET last_login = ? WHERE id = ?').run(new Date().toISOString(), user.id);
   const token = createToken(user.id, user.tenant_id);
   const tenant = db.prepare('SELECT * FROM tenants WHERE id = ?').get(user.tenant_id) as any;
   res.json({ success: true, token, user: { id: user.id, email: user.email, name: user.name, role: user.role }, tenant: { id: tenant.id, name: tenant.name, plan: tenant.plan } });
