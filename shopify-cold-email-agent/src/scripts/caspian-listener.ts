@@ -68,7 +68,7 @@ async function searchWebForStores(query: string, limit = 5) {
             const storeName = urlParts[2]?.replace('.myshopify.com', '').replace('.shopify.com', '') || topic.Text.substring(0, 30);
             
             results.push({
-              name: storeName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+              name: storeName.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
               url: url,
               niche: query,
               source: 'duckduckgo',

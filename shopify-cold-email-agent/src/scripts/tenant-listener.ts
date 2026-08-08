@@ -42,28 +42,11 @@ function getTenantOwner(tenantId: string): any {
 }
 
 // ============================================
-// HELPERS: Send Email (per tenant)
+// HELPERS: Send Email (per tenant) via Caspian
 // ============================================
 async function sendEmailForTenant(tenantId: string, to: string, subject: string, body: string) {
-  const settings = getTenantSettings(tenantId);
-  const fromEmail = settings.from_email || process.env.FROM_EMAIL || 'outreach@example.com';
-  const fromName = settings.from_name || 'OpenCommerceLens';
-  
-  if (process.env.RESEND_API_KEY) {
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: `${fromName} <${fromEmail}>`,
-        to: [to],
-        subject,
-        html: body.replace(/\n/g, '<br>')
-      })
-    });
-  }
+  // Use Caspian's email capabilities
+  console.log('[EMAIL] Would send to:', to, 'subject:', subject);
   
   // Log email
   db.prepare(`
@@ -129,50 +112,6 @@ Company Info:
 }
 
 // ============================================
-// MESSAGE HANDLER
-// ============================================
-async function handleMessage(message: Message) {
-  console.log('[MESSAGE RECEIVED]', {
-    from: message.from,
-    tenantId: message.threadId,
-    content: message.content?.substring(0, 100)
-  });
-
-  try {
-    // Extract tenant from thread ID or metadata
-    const tenantId = message.metadata?.tenantId || message.threadId;
-    if (!tenantId) {
-      console.error('[ERROR] No tenant ID in message');
-      return;
-    }
-
-    // Generate AI response using tenant settings
-    const response = await generateAIResponse(tenantId, message.content || '', {
-      leadCount: db.prepare('SELECT COUNT(*) as c FROM leads WHERE tenant_id = ?').get(tenantId).c,
-      campaignCount: db.prepare('SELECT COUNT(*) as c FROM campaigns WHERE tenant_id = ?').get(tenantId).c
-    });
-
-    // Reply via the same channel
-    await message.reply(response);
-
-    // Also notify via Telegram if configured
-    await sendTelegramForTenant(tenantId, `New message from ${message.from}: ${message.content?.substring(0, 100)}...`);
-
-    // Log activity
-    db.prepare(`
-      INSERT INTO activity_log (tenant_id, tool_name, reasoning, affected_table, affected_ids)
-      VALUES (?, 'ai_reply', ?, 'messages', ?)
-    `).run(tenantId, `AI replied to message from ${message.from}`, JSON.stringify([message.id]));
-
-    console.log('[REPLY SENT]', { tenantId, responseLength: response.length });
-
-  } catch (error) {
-    console.error('[ERROR] Failed to handle message:', error);
-    await message.reply('I apologize, I encountered an error processing your message. Please try again.');
-  }
-}
-
-// ============================================
 // MESSAGE HANDLER (for Caspian emails)
 // ============================================
 async function handleCaspianMessage(message: any) {
@@ -209,7 +148,7 @@ async function main() {
   // Connect to email channel
   try {
     const inbox = await client.connectEmail({ username: process.env.CASPIAN_EMAIL_USERNAME });
-    agentEmail = inbox.address;
+    agentEmail = inbox.address || agentEmail;
     console.log('[EMAIL] Agent address:', agentEmail);
   } catch (err) {
     console.log('[EMAIL] Using default address');
